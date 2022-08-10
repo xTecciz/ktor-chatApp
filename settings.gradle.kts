@@ -1,0 +1,1 @@
+rootProject.name = "ktor_chatApp.ktor-chatapp"

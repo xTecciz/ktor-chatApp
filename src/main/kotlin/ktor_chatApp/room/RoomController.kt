@@ -7,7 +7,9 @@ import ktor_chatApp.data.MessageDataSource
 import ktor_chatApp.data.model.MessageModel
 import java.util.concurrent.ConcurrentHashMap
 
-class RoomController(private val messageDataSource: MessageDataSource) {
+class RoomController(
+    private val messageDataSource: MessageDataSource
+) {
     private val members = ConcurrentHashMap<String, Member>()
 
     fun onJoin(
@@ -15,7 +17,9 @@ class RoomController(private val messageDataSource: MessageDataSource) {
         sessionId: String,
         socket: WebSocketSession
     ) {
-        if (members.contains(username)) throw MemberExistsException()
+        if (members.containsKey(username)) {
+            throw MemberExistsException()
+        }
         members[username] = Member(
             username = username,
             sessionId = sessionId,
@@ -24,15 +28,13 @@ class RoomController(private val messageDataSource: MessageDataSource) {
     }
 
     suspend fun sendMessage(senderUsername: String, message: String) {
+        val messageEntity = MessageModel(
+            text = message,
+            username = senderUsername,
+            timestamp = System.currentTimeMillis()
+        )
+        messageDataSource.insertMessage(messageEntity)
         members.values.forEach { member ->
-            val messageEntity =
-                MessageModel(
-                    text = message,
-                    username = senderUsername,
-                    timestamp = System.currentTimeMillis()
-                )
-            messageDataSource.insertMessage(messageEntity)
-
             val parsedMessage = Json.encodeToString(messageEntity)
             member.socket.send(Frame.Text(parsedMessage))
         }
@@ -44,9 +46,12 @@ class RoomController(private val messageDataSource: MessageDataSource) {
 
     suspend fun tryDisconnect(username: String) {
         members[username]?.socket?.close()
-        if (members.contains(username)) members.remove(username)
+        if (members.contains(username)) {
+            members.remove(username)
+        }
     }
-    suspend fun clearDB(){
+
+    suspend fun clearDB() {
         messageDataSource.clearDB()
     }
 }

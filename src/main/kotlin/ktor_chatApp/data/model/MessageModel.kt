@@ -11,4 +11,4 @@ data class MessageModel(
     val text: String,
     val username: String,
     val timestamp: Long
-) {}
+)

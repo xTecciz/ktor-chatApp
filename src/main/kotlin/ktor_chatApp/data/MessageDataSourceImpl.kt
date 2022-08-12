@@ -10,7 +10,9 @@ class MessageDataSourceImpl(
     private val messages = db.getCollection<MessageModel>()
 
     override suspend fun getAllMessages(): List<MessageModel> {
-        return messages.find().descendingSort(MessageModel::timestamp).toList()
+        return messages.find()
+            .descendingSort(MessageModel::timestamp)
+            .toList()
     }
 
     override suspend fun insertMessage(message: MessageModel) {

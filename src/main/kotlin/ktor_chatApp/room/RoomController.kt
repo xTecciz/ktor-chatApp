@@ -28,13 +28,13 @@ class RoomController(
     }
 
     suspend fun sendMessage(senderUsername: String, message: String) {
-        val messageEntity = MessageModel(
-            text = message,
-            username = senderUsername,
-            timestamp = System.currentTimeMillis()
-        )
-        messageDataSource.insertMessage(messageEntity)
         members.values.forEach { member ->
+            val messageEntity = MessageModel(
+                text = message,
+                username = senderUsername,
+                timestamp = System.currentTimeMillis()
+            )
+            messageDataSource.insertMessage(messageEntity)
             val parsedMessage = Json.encodeToString(messageEntity)
             member.socket.send(Frame.Text(parsedMessage))
         }
